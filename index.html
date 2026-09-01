@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markmade — AI logo design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F5; --surface:#FFFFFF; --ink:#14213D; --muted:rgba(20,33,61,0.62);
+  --line:#C9D0DC; --accent:#FF4E2E; --accent-soft:#FFE1D8; --good:#1D8348; --good-soft:#DFF5E6;
+  --shadow: 0 8px 24px rgba(20,33,61,0.08);
+}
+html[data-theme="dark"]{
+  --bg:#10151F; --surface:#1B2434; --ink:#F4F6FA; --muted:rgba(244,246,250,0.62);
+  --line:#2C3648; --accent:#FF6B45; --accent-soft:rgba(255,107,69,0.16); --good:#4ADE80; --good-soft:rgba(74,222,128,0.14);
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.5;transition:background .25s,color .25s;}
+h1,h2,h3{font-family:'Fraunces',serif;margin:0;font-weight:600;}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
+button,input,textarea,select{font-family:inherit;}
+
+/* header */
+header{padding:26px 0 6px;}
+.brandline{display:flex;align-items:center;justify-content:space-between;}
+.brandmark{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-weight:600;font-size:20px;}
+.brandmark span{width:26px;height:26px;border-radius:7px;background:var(--accent);display:inline-block;}
+.theme-toggle{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+
+/* screens */
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* ---- DISCOVERY ---- */
+.discover-wrap{max-width:640px;margin:0 auto;padding:48px 0 80px;}
+.discover-head{text-align:center;margin-bottom:36px;}
+.discover-head h1{font-size:38px;line-height:1.1;}
+.discover-head p{color:var(--muted);margin-top:10px;font-size:16px;}
+.q-card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:14px;}
+.q-card label{display:block;font-weight:600;font-size:14px;margin-bottom:10px;}
+.q-card .opt{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px;}
+input[type=text], textarea{
+  width:100%;padding:13px 15px;font-size:15px;border:1.5px solid var(--line);border-radius:10px;
+  background:var(--bg);color:var(--ink);
+}
+textarea{resize:vertical;min-height:64px;}
+input[type=text]:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);font-size:13.5px;cursor:pointer;color:var(--ink);}
+.chip.selected{border-color:var(--ink);background:var(--ink);color:var(--surface);}
+html[data-theme="dark"] .chip.selected{background:var(--accent);border-color:var(--accent);color:#111;}
+.style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.style-opt{border:1.5px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;background:var(--bg);}
+.style-opt.selected{border-color:var(--accent);background:var(--accent-soft);}
+.style-opt .glyph{font-family:'Fraunces',serif;font-size:22px;margin-bottom:6px;}
+.style-opt .label{font-size:12.5px;font-weight:600;}
+.palette-row{display:flex;gap:10px;flex-wrap:wrap;}
+.palette{border:1.5px solid var(--line);border-radius:12px;padding:8px;cursor:pointer;width:74px;}
+.palette.selected{border-color:var(--ink);}
+html[data-theme="dark"] .palette.selected{border-color:var(--accent);}
+.palette .bar{height:16px;border-radius:5px;display:flex;overflow:hidden;margin-bottom:6px;}
+.palette .bar div{flex:1;}
+.palette .name{font-size:10.5px;text-align:center;color:var(--muted);}
+
+.generate-btn{
+  width:100%;margin-top:8px;background:var(--ink);color:var(--surface);border:none;padding:17px;font-size:16px;
+  font-weight:600;border-radius:12px;cursor:pointer;
+}
+html[data-theme="dark"] .generate-btn{background:var(--accent);color:#111;}
+.generate-btn:hover{opacity:0.92;}
+.required-note{text-align:center;font-size:12.5px;color:var(--muted);margin-top:10px;}
+
+/* ---- GENERATING ---- */
+.generating-wrap{max-width:520px;margin:0 auto;padding:110px 0;text-align:center;}
+.spin{width:44px;height:44px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);
+  margin:0 auto 22px;animation:spin 0.9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.generating-wrap p{color:var(--muted);font-size:14.5px;margin-top:6px;}
+
+/* ---- CONCEPTS ---- */
+.concepts-wrap{padding:36px 0 70px;}
+.concepts-head{margin-bottom:24px;}
+.concepts-head h2{font-size:26px;}
+.concepts-head p{color:var(--muted);margin-top:6px;font-size:14.5px;}
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.concept-card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px;cursor:pointer;}
+.concept-card:hover{border-color:var(--accent);}
+.concept-card .tag{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:8px;display:block;}
+.concept-canvas-shell{border-radius:10px;overflow:hidden;background:var(--bg);position:relative;aspect-ratio:1/1;}
+.concept-card canvas{width:100%;height:auto;display:block;}
+.gen-img{width:100%;height:100%;object-fit:cover;display:block;}
+.watermark-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;}
+.watermark-overlay span{transform:rotate(-28deg);font-weight:700;font-size:15px;color:rgba(20,33,61,0.35);letter-spacing:.06em;white-space:nowrap;}
+.loading-shimmer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px;background:var(--bg);text-align:center;padding:14px;}
+.retry-btn{background:var(--ink);color:var(--surface);border:none;padding:8px 16px;border-radius:8px;font-weight:600;font-size:12.5px;cursor:pointer;}
+.result-canvas-shell{position:relative;}
+.concept-card .pick{margin-top:12px;width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font-weight:600;font-size:13.5px;cursor:pointer;}
+.concept-card .pick:hover{background:var(--ink);color:var(--surface);}
+
+/* ---- RESULT ---- */
+.result-wrap{padding:30px 0 70px;display:grid;grid-template-columns:1.2fr 0.9fr;gap:32px;align-items:start;}
+.result-main{background:var(--surface);border:1.5px solid var(--line);border-radius:20px;padding:24px;}
+.result-main-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.result-main-head .tag{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;}
+.mini-toggle{display:flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;font-size:12.5px;}
+.mini-toggle button{border:none;background:transparent;color:var(--ink);padding:6px 13px;cursor:pointer;font-weight:600;}
+.mini-toggle button.active{background:var(--ink);color:var(--surface);}
+.result-canvas-shell{border-radius:14px;overflow:hidden;position:relative;
+  background-image:linear-gradient(45deg,rgba(0,0,0,.04) 25%,transparent 25%),linear-gradient(-45deg,rgba(0,0,0,.04) 25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(0,0,0,.04) 75%),linear-gradient(-45deg,transparent 75%,rgba(0,0,0,.04) 75%);
+  background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0px;background-color:var(--surface);
+}
+.result-canvas-shell.dark-preview{background-color:#0E1420;background-image:none;}
+canvas.result-canvas{width:100%;height:auto;display:block;}
+.concept-tabs{display:flex;gap:8px;margin-top:16px;}
+.concept-tabs button{flex:1;padding:9px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-size:12.5px;font-weight:600;cursor:pointer;}
+.concept-tabs button.active{border-color:var(--accent);background:var(--accent-soft);}
+
+/* refine bar */
+.refine{margin-top:18px;}
+.refine .chip-row{margin-bottom:10px;}
+.refine-input-row{display:flex;gap:8px;}
+.refine-input-row input{flex:1;}
+.refine-input-row button{background:var(--ink);color:var(--surface);border:none;padding:0 18px;border-radius:10px;font-weight:600;cursor:pointer;}
+html[data-theme="dark"] .refine-input-row button{background:var(--accent);color:#111;}
+.designer-note{background:var(--bg);border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--muted);margin-top:12px;display:none;}
+.designer-note.show{display:block;}
+.start-over{margin-top:14px;background:none;border:none;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;padding:0;}
+
+/* pricing */
+.pricing-col{display:flex;flex-direction:column;gap:14px;}
+.tier{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:20px;}
+.tier.highlight{border-color:var(--accent);box-shadow:var(--shadow);}
+.tier .tname{font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center;}
+.tier .tprice{font-family:'Fraunces',serif;font-size:24px;margin:6px 0 10px;}
+.tier ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--muted);}
+.tier li{margin-bottom:4px;}
+.tier button{width:100%;margin-top:14px;padding:12px;border-radius:9px;font-weight:600;font-size:13.5px;cursor:pointer;border:1.5px solid var(--ink);background:transparent;color:var(--ink);}
+.tier.highlight button{background:var(--accent);border-color:var(--accent);color:#fff;}
+.badge{font-size:10.5px;background:var(--good-soft);color:var(--good);padding:3px 8px;border-radius:999px;font-weight:700;}
+
+/* modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,14,22,0.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:50;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--surface);border-radius:16px;padding:30px;max-width:420px;width:100%;border:1.5px solid var(--line);}
+.modal h3{font-size:19px;margin-bottom:8px;}
+.modal p{font-size:13.5px;color:var(--muted);margin-bottom:18px;}
+.modal button{width:100%;padding:12px;border-radius:9px;font-weight:600;cursor:pointer;border:none;margin-top:8px;}
+.modal .pay{background:var(--accent);color:#fff;}
+.modal .close{background:var(--bg);color:var(--ink);}
+
+footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center;}
+
+@media (max-width:860px){
+  .style-grid{grid-template-columns:repeat(2,1fr);}
+  .concept-grid{grid-template-columns:1fr;}
+  .result-wrap{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="brandline">
+    <div class="brandmark"><span></span>Markmade</div>
+    <button class="theme-toggle" id="themeToggle">🌙 Dark</button>
+  </div>
+</header>
+
+<!-- SCREEN 1: DISCOVERY -->
+<section class="screen active" id="screen-discover">
+  <div class="discover-wrap">
+    <div class="discover-head">
+      <h1>Let's design your mark.</h1>
+      <p>A few quick questions — no design experience needed.</p>
+    </div>
+
+    <div class="q-card">
+      <label>Brand or project name</label>
+      <input type="text" id="bizname" placeholder="e.g. Riverside Coffee Co." maxlength="30">
+    </div>
+
+    <div class="q-card">
+      <label>What's it about? <span class="opt">optional, one line</span></label>
+      <input type="text" id="bizdesc" placeholder="e.g. a small-batch coffee roaster">
+    </div>
+
+    <div class="q-card">
+      <label>What should it feel like? <span class="opt">pick a few</span></label>
+      <div class="chip-row" id="feelRow">
+        <button class="chip" data-feel="premium">Premium</button>
+        <button class="chip" data-feel="friendly">Friendly</button>
+        <button class="chip" data-feel="bold">Bold</button>
+        <button class="chip" data-feel="playful">Playful</button>
+        <button class="chip" data-feel="elegant">Elegant</button>
+        <button class="chip" data-feel="futuristic">Futuristic</button>
+        <button class="chip" data-feel="calm">Calm</button>
+        <button class="chip" data-feel="trustworthy">Trustworthy</button>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <label>Style direction</label>
+      <div class="style-grid" id="styleGrid">
+        <div class="style-opt selected" data-style="minimal"><div class="glyph">◯</div><div class="label">Minimal</div></div>
+        <div class="style-opt" data-style="bold"><div class="glyph">■</div><div class="label">Bold</div></div>
+        <div class="style-opt" data-style="elegant"><div class="glyph"><i>Aa</i></div><div class="label">Elegant</div></div>
+        <div class="style-opt" data-style="playful"><div class="glyph">◐</div><div class="label">Playful</div></div>
+        <div class="style-opt" data-style="geometric"><div class="glyph">△</div><div class="label">Geometric</div></div>
+        <div class="style-opt" data-style="badge"><div class="glyph">۞</div><div class="label">Badge</div></div>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <label>Color direction</label>
+      <div class="palette-row" id="paletteRow"></div>
+    </div>
+
+    <div class="q-card">
+      <label>Describe your ideal logo <span class="opt">optional</span></label>
+      <textarea id="freedesc" placeholder="e.g. a mountain with a small moon above it, dark blue and silver, avoid anything cartoonish"></textarea>
+    </div>
+
+    <button class="generate-btn" id="generateBtn">Generate 3 concepts →</button>
+    <p class="required-note">Free · no account needed</p>
+  </div>
+</section>
+
+<!-- SCREEN 2: GENERATING -->
+<section class="screen" id="screen-generating">
+  <div class="generating-wrap">
+    <div class="spin"></div>
+    <h3 id="genHeadline">Sketching directions for your brand…</h3>
+    <p id="genSub">Exploring symbol, type, and abstract concepts</p>
+  </div>
+</section>
+
+<!-- SCREEN 3: CONCEPTS -->
+<section class="screen" id="screen-concepts">
+  <div class="wrap concepts-wrap">
+    <div class="concepts-head">
+      <h2>Three directions for <span id="conceptBrandName"></span></h2>
+      <p>Each one takes a different creative approach. Pick the one that feels right — you can refine it after.</p>
+    </div>
+    <div class="concept-grid" id="conceptGrid"></div>
+  </div>
+</section>
+
+<!-- SCREEN 4: RESULT -->
+<section class="screen" id="screen-result">
+  <div class="wrap result-wrap">
+    <div class="result-main">
+      <div class="result-main-head">
+        <span class="tag" id="resultConceptTag">Symbol-led</span>
+        <div class="mini-toggle" id="presentToggle">
+          <button class="active" data-p="light">Light</button>
+          <button data-p="dark">Dark</button>
+        </div>
+      </div>
+      <div class="result-canvas-shell" id="resultShell"></div>
+
+      <div class="concept-tabs" id="conceptTabs"></div>
+
+      <div class="refine">
+        <div class="chip-row">
+          <button class="chip" data-refine="minimal">More minimal</button>
+          <button class="chip" data-refine="premium">More premium</button>
+          <button class="chip" data-refine="colors">Different colors</button>
+          <button class="chip" data-refine="concept">New concept</button>
+        </div>
+        <div class="refine-input-row">
+          <input type="text" id="refineInput" placeholder="e.g. make the icon smaller, use a darker blue">
+          <button id="refineSend">Send</button>
+        </div>
+        <div class="designer-note" id="designerNote"></div>
+      </div>
+      <button class="start-over" id="startOverBtn">↺ Start over</button>
+    </div>
+
+    <div class="pricing-col">
+      <div class="tier">
+        <div class="tname">Free <span class="badge">current</span></div>
+        <div class="tprice" style="font-size:18px;">Preview</div>
+        <ul>
+          <li>Generate & refine concepts</li>
+          <li>Low-res watermarked preview</li>
+          <li>Light & dark presentation</li>
+        </ul>
+      </div>
+      <div class="tier highlight">
+        <div class="tname">HD Export</div>
+        <div class="tprice">$3</div>
+        <ul>
+          <li>This specific design, high resolution</li>
+          <li>Watermark remains</li>
+          <li>One-time — no subscription</li>
+        </ul>
+        <button id="hdBtn">Get HD export</button>
+      </div>
+      <div class="tier">
+        <div class="tname">Premium</div>
+        <div class="tprice">$5</div>
+        <ul>
+          <li>No watermark, full resolution</li>
+          <li>All 3 concepts unlocked</li>
+          <li>Unlimited refinements</li>
+        </ul>
+        <button id="premiumBtn">Go Premium</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">Markmade — a demo product. Generation and payment shown here are simulated for preview purposes.</footer>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">This is where Stripe plugs in</h3>
+    <p id="modalBody">In the live version, this opens a real Stripe Checkout page. Once payment succeeds, Stripe confirms it automatically and the file unlocks — no manual step. This demo simulates that so you can see the full flow.</p>
+    <button class="pay" id="simulatePay">Simulate payment →</button>
+    <button class="close" id="closeModal">Close</button>
+  </div>
+</div>
+
+<script>
+/* ---------------- STATE ---------------- */
+const state = {
+  name:'', desc:'', feels:[], style:'minimal', paletteKey:'navy', freedesc:'',
+  concepts:[], activeConceptIdx:0, presentation:'light', unlocked:false
+};
+
+const PALETTES = {
+  navy:   {name:'Professional', colors:['#14213D','#FF4E2E','#EEF1F5']},
+  earth:  {name:'Earth',        colors:['#7A4E2D','#D9A24B','#F3ECE1']},
+  luxury: {name:'Luxury dark',  colors:['#101010','#C9A24B','#2A2A2A']},
+  cool:   {name:'Cool',         colors:['#0E4C63','#3FB6A8','#E7F4F3']},
+  vibrant:{name:'Vibrant',      colors:['#7C3AED','#F472B6','#FDF2FF']},
+  mono:   {name:'Monochrome',   colors:['#1A1A1A','#6B6B6B','#F2F2F2']}
+};
+
+/* ---------------- THEME ---------------- */
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const html = document.documentElement;
+  const dark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.getElementById('themeToggle').textContent = dark ? '🌙 Dark' : '☀️ Light';
+});
+
+/* ---------------- BUILD PALETTE PICKER ---------------- */
+const paletteRow = document.getElementById('paletteRow');
+Object.entries(PALETTES).forEach(([key,p],i)=>{
+  const el = document.createElement('div');
+  el.className = 'palette' + (i===0?' selected':'');
+  el.dataset.key = key;
+  el.innerHTML = `<div class="bar">${p.colors.map(c=>`<div style="background:${c}"></div>`).join('')}</div><div class="name">${p.name}</div>`;
+  el.addEventListener('click', ()=>{
+    document.querySelectorAll('.palette').forEach(x=>x.classList.remove('selected'));
+    el.classList.add('selected');
+    state.paletteKey = key;
+  });
+  paletteRow.appendChild(el);
+});
+
+/* ---------------- DISCOVERY INTERACTIONS ---------------- */
+document.getElementById('feelRow').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip')) return;
+  e.target.classList.toggle('selected');
+  const f = e.target.dataset.feel;
+  if(state.feels.includes(f)) state.feels = state.feels.filter(x=>x!==f);
+  else state.feels.push(f);
+});
+
+document.getElementById('styleGrid').addEventListener('click', e=>{
+  const opt = e.target.closest('.style-opt');
+  if(!opt) return;
+  document.querySelectorAll('.style-opt').forEach(o=>o.classList.remove('selected'));
+  opt.classList.add('selected');
+  state.style = opt.dataset.style;
+});
+
+/* ---------------- DETERMINISTIC HASH (for abstract shapes) ---------------- */
+function hashStr(s){
+  let h = 0;
+  for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; }
+  return h;
+}
+
+/* ---------------- REAL AI IMAGE (Pollinations, free, key-less) ---------------- */
+const STYLE_WORDS = {
+  minimal:'minimalist, clean lines, lots of negative space',
+  bold:'bold, high contrast, thick geometric shapes',
+  elegant:'elegant, refined, thin delicate linework, serif-inspired',
+  playful:'playful, rounded, friendly, soft shapes',
+  geometric:'geometric, angular, sharp triangular shapes',
+  badge:'badge style, circular emblem, vintage crest'
+};
+const CONCEPT_WORDS = {
+  symbol: 'a single abstract icon symbol mark, no text',
+  type: 'a wordmark logo, the brand name stylized as the logo itself',
+  abstract: 'an abstract geometric symbol mark, unrelated to any letterform, no text'
+};
+
+function buildPrompt(conceptType){
+  const palette = PALETTES[state.paletteKey];
+  const feelWords = state.feels.length ? state.feels.join(', ') + ' feeling, ' : '';
+  const desc = state.desc ? `brand about ${state.desc}, ` : '';
+  const free = state.freedesc ? state.freedesc + ', ' : '';
+  return `professional flat vector logo design for "${state.name}", ${CONCEPT_WORDS[conceptType]}, `
+    + `${STYLE_WORDS[state.style]}, ${feelWords}${desc}${free}`
+    + `color palette ${palette.colors.join(' and ')}, isolated on plain white background, `
+    + `no watermark, no signature, high quality professional logo design`;
+}
+
+function pollinationsUrl(conceptType, sizePx){
+  const seed = hashStr(state.name + '|' + state.style + '|' + state.paletteKey + '|' + conceptType) % 100000;
+  const prompt = buildPrompt(conceptType);
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${sizePx}&height=${sizePx}&seed=${seed}&nologo=true&model=flux`;
+}
+
+function renderGenImage(container, conceptType, unlocked, sizePx, retriesLeft){
+  if(retriesLeft === undefined) retriesLeft = 3;
+  container.innerHTML = '<div class="loading-shimmer">Generating…</div>';
+  const img = new Image();
+  img.className = 'gen-img';
+  img.alt = state.name + ' logo concept';
+  img.onload = ()=>{
+    container.innerHTML = '';
+    container.appendChild(img);
+    if(!unlocked){
+      const wm = document.createElement('div');
+      wm.className = 'watermark-overlay';
+      wm.innerHTML = '<span>PREVIEW &nbsp;·&nbsp; PREVIEW &nbsp;·&nbsp; PREVIEW</span>';
+      container.appendChild(wm);
+    }
+  };
+  img.onerror = ()=>{
+    if(retriesLeft > 0){
+      container.innerHTML = '<div class="loading-shimmer">Free server is busy, retrying…</div>';
+      setTimeout(()=> renderGenImage(container, conceptType, unlocked, sizePx, retriesLeft-1), 4500);
+    } else {
+      container.innerHTML = '<div class="loading-shimmer" style="flex-direction:column;gap:8px;">'
+        + '<span>Free generator is rate-limited right now.</span>'
+        + '<button class="retry-btn">Retry</button></div>';
+      container.querySelector('.retry-btn').addEventListener('click', ()=>{
+        renderGenImage(container, conceptType, unlocked, sizePx, 3);
+      });
+    }
+  };
+  img.src = pollinationsUrl(conceptType, sizePx);
+}
+
+/* ---------------- DRAWING ENGINE ---------------- */
+// concept types: 'symbol' | 'type' | 'abstract'
+function drawConcept(canvas, {name, style, palette, conceptType, unlocked, presentation}){
+  const ctx = canvas.getContext('2d');
+  const size = 560;
+  canvas.width = size; canvas.height = size;
+  const bgColor = presentation === 'dark' ? '#0E1420' : '#FFFFFF';
+  const [primary, secondary] = palette.colors;
+  const initial = (name.trim()[0] || 'M').toUpperCase();
+  const seed = hashStr(name || 'markmade' + conceptType);
+
+  ctx.clearRect(0,0,size,size);
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0,0,size,size);
+
+  const cx = size/2, cy = size/2 - 20;
+  ctx.save();
+  ctx.translate(cx,cy);
+
+  const inkOnBg = presentation === 'dark' ? '#F4F6FA' : '#14213D';
+
+  if(conceptType === 'type'){
+    /* TYPE-LED: the brand name itself IS the mark, treated typographically */
+    let fontStyle;
+    if(style==='elegant') fontStyle = `italic 400 ${name.length>10?58:78}px Fraunces, serif`;
+    else if(style==='bold') fontStyle = `700 ${name.length>10?60:80}px Inter, sans-serif`;
+    else if(style==='playful') fontStyle = `600 ${name.length>10?56:74}px Fraunces, serif`;
+    else fontStyle = `500 ${name.length>10?56:72}px Fraunces, serif`;
+    ctx.font = fontStyle;
+    ctx.fillStyle = primary;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const words = (name.trim()||'Your Brand').split(' ');
+    if(words.length > 1 && name.length > 9){
+      ctx.fillText(words[0], 0, -24);
+      ctx.fillStyle = secondary;
+      ctx.fillText(words.slice(1).join(' '), 0, 40);
+    } else {
+      ctx.fillText(name.trim() || 'Your Brand', 0, 0);
+    }
+    if(style !== 'bold'){
+      ctx.strokeStyle = secondary;
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-90,70); ctx.lineTo(90,70); ctx.stroke();
+    }
+    ctx.restore();
+    drawNameLockup(ctx, cx, size, null, bgColor, inkOnBg); // no repeated name below for type concept
+    if(!unlocked) drawWatermark(ctx,cx,cy+20,inkOnBg);
+    return;
+  }
+
+  if(conceptType === 'abstract'){
+    /* ABSTRACT: geometric mark derived from name hash, independent of the letter */
+    const points = 5 + (seed % 3); // 5,6,7 sided
+    const jitter = 0.18;
+    ctx.beginPath();
+    for(let i=0;i<points;i++){
+      const angle = (i/points)*Math.PI*2 - Math.PI/2;
+      const r = 130 * (1 - jitter/2 + ((seed >> (i*3)) % 100)/100 * jitter);
+      const x = Math.cos(angle)*r, y = Math.sin(angle)*r;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = primary;
+    ctx.fill();
+
+    // secondary overlapping smaller polygon for depth
+    ctx.beginPath();
+    const points2 = 3 + (seed % 3);
+    for(let i=0;i<points2;i++){
+      const angle = (i/points2)*Math.PI*2 - Math.PI/2 + 0.6;
+      const r = 62;
+      const x = Math.cos(angle)*r + 30, y = Math.sin(angle)*r - 20;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = secondary;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    drawNameLockup(ctx, cx, size, name, bgColor, inkOnBg);
+    if(!unlocked) drawWatermark(ctx,cx,cy+20,inkOnBg);
+    return;
+  }
+
+  /* SYMBOL-LED (default) — driven by style */
+  if(style === 'minimal'){
+    ctx.strokeStyle = primary; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.arc(0,0,140,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle = primary;
+    ctx.font = '500 120px Fraunces, serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(initial,0,10);
+  } else if(style === 'bold'){
+    ctx.fillStyle = primary; ctx.fillRect(-150,-150,300,300);
+    ctx.fillStyle = secondary;
+    ctx.font = '700 190px Inter, sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(initial,0,8);
+  } else if(style === 'elegant'){
+    ctx.strokeStyle = primary; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-165,0); ctx.lineTo(-55,0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(55,0); ctx.lineTo(165,0); ctx.stroke();
+    ctx.fillStyle = primary;
+    ctx.font = 'italic 400 130px Fraunces, serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(initial,0,14);
+  } else if(style === 'playful'){
+    for(let i=0;i<3;i++){
+      ctx.beginPath();
+      ctx.fillStyle = i===1 ? secondary : primary;
+      ctx.globalAlpha = 0.88;
+      ctx.arc(Math.cos(i*2.1+seed%3)*55, Math.sin(i*2.1+seed%3)*55, 88-i*9, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff';
+    ctx.font = '700 100px Inter, sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(initial,0,6);
+  } else if(style === 'geometric'){
+    ctx.fillStyle = primary;
+    ctx.beginPath(); ctx.moveTo(0,-130); ctx.lineTo(115,90); ctx.lineTo(-115,90); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = secondary;
+    ctx.beginPath(); ctx.moveTo(0,-55); ctx.lineTo(55,45); ctx.lineTo(-55,45); ctx.closePath(); ctx.fill();
+  } else if(style === 'badge'){
+    ctx.strokeStyle = primary; ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.arc(0,0,145,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,0,120,0,Math.PI*2); ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle = primary;
+    ctx.font = '600 90px Fraunces, serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(initial,0,-6);
+    ctx.font = '600 13px Inter, sans-serif';
+    ctx.fillStyle = secondary;
+    ctx.fillText((name||'BRAND').toUpperCase().slice(0,16), 0, 78);
+  }
+  ctx.restore();
+  drawNameLockup(ctx, cx, size, name, bgColor, inkOnBg);
+  if(!unlocked) drawWatermark(ctx, cx, cy+20, inkOnBg);
+}
+
+function drawNameLockup(ctx, cx, size, name, bgColor, inkOnBg){
+  if(!name) return;
+  ctx.fillStyle = inkOnBg;
+  ctx.font = '600 30px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(name.trim() || 'Your Brand', cx, size-56);
+}
+
+function drawWatermark(ctx, cx, cy, inkOnBg){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(-0.45);
+  ctx.font = '700 40px Inter, sans-serif';
+  ctx.fillStyle = inkOnBg === '#F4F6FA' ? 'rgba(244,246,250,0.25)' : 'rgba(20,33,61,0.22)';
+  ctx.textAlign = 'center';
+  ctx.fillText('PREVIEW  ·  PREVIEW', 0, 0);
+  ctx.restore();
+}
+
+/* ---------------- GENERATE FLOW ---------------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+document.getElementById('generateBtn').addEventListener('click', ()=>{
+  state.name = document.getElementById('bizname').value.trim() || 'Your Brand';
+  state.desc = document.getElementById('bizdesc').value.trim();
+  state.freedesc = document.getElementById('freedesc').value.trim();
+
+  showScreen('screen-generating');
+  const headline = document.getElementById('genHeadline');
+  const sub = document.getElementById('genSub');
+  const lines = [
+    ['Reading your brief…','Name, feel, and style noted'],
+    ['Exploring three directions…','Symbol-led, type-led, and abstract'],
+    ['Refining composition…','Balancing shape, type, and space']
+  ];
+  let i=0;
+  headline.textContent = lines[0][0]; sub.textContent = lines[0][1];
+  const iv = setInterval(()=>{
+    i++;
+    if(i < lines.length){ headline.textContent = lines[i][0]; sub.textContent = lines[i][1]; }
+  }, 500);
+
+  setTimeout(()=>{
+    clearInterval(iv);
+    buildConcepts();
+    showScreen('screen-concepts');
+  }, 1700);
+});
+
+function buildConcepts(){
+  const palette = PALETTES[state.paletteKey];
+  state.concepts = [
+    {type:'symbol',   label:'Symbol-led',  style:state.style},
+    {type:'type',     label:'Type-led',    style:state.style},
+    {type:'abstract', label:'Abstract',    style:state.style}
+  ];
+  document.getElementById('conceptBrandName').textContent = state.name;
+  const grid = document.getElementById('conceptGrid');
+  grid.innerHTML = '';
+  state.concepts.forEach((c, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'concept-card';
+    card.innerHTML = `<span class="tag">${c.label}</span>
+      <div class="concept-canvas-shell"></div>
+      <button class="pick">Choose this direction</button>`;
+    grid.appendChild(card);
+    const shell = card.querySelector('.concept-canvas-shell');
+    setTimeout(()=> renderGenImage(shell, c.type, false, 400), idx * 4500);
+    card.querySelector('.pick').addEventListener('click', ()=>{
+      state.activeConceptIdx = idx;
+      openResult();
+    });
+  });
+}
+
+/* ---------------- RESULT SCREEN ---------------- */
+function openResult(){
+  state.presentation = 'light';
+  state.unlocked = false;
+  renderResult();
+  buildConceptTabs();
+  showScreen('screen-result');
+}
+
+function renderResult(){
+  const c = state.concepts[state.activeConceptIdx];
+  document.getElementById('resultConceptTag').textContent = c.label;
+  const shell = document.getElementById('resultShell');
+  renderGenImage(shell, c.type, state.unlocked, 700);
+  shell.classList.toggle('dark-preview', state.presentation==='dark');
+  document.querySelectorAll('.mini-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.p===state.presentation));
+}
+
+function buildConceptTabs(){
+  const tabs = document.getElementById('conceptTabs');
+  tabs.innerHTML='';
+  state.concepts.forEach((c,idx)=>{
+    const b = document.createElement('button');
+    b.textContent = c.label;
+    b.className = idx===state.activeConceptIdx ? 'active' : '';
+    b.addEventListener('click', ()=>{ state.activeConceptIdx = idx; renderResult(); buildConceptTabs(); });
+    tabs.appendChild(b);
+  });
+}
+
+document.getElementById('presentToggle').addEventListener('click', e=>{
+  if(e.target.tagName !== 'BUTTON') return;
+  state.presentation = e.target.dataset.p;
+  renderResult();
+});
+
+document.getElementById('startOverBtn').addEventListener('click', ()=>{
+  document.getElementById('bizname').value='';
+  document.getElementById('bizdesc').value='';
+  document.getElementById('freedesc').value='';
+  document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
+  state.feels = [];
+  showScreen('screen-discover');
+});
+
+/* ---------------- REFINE LOGIC (simplified demo intent classifier) ---------------- */
+function note(msg){
+  const el = document.getElementById('designerNote');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function applyRefine(kind, freeText){
+  const palette = PALETTES[state.paletteKey];
+  if(kind === 'minimal'){
+    document.querySelectorAll('.style-opt').forEach(o=>{});
+    state.concepts[state.activeConceptIdx].style = 'minimal';
+    note("Got it — simplifying this direction: less decoration, more restraint and whitespace.");
+  } else if(kind === 'premium'){
+    state.paletteKey = 'luxury';
+    note("Shifting toward a darker, more premium palette while keeping this concept's composition.");
+  } else if(kind === 'colors'){
+    const keys = Object.keys(PALETTES);
+    const next = keys[(keys.indexOf(state.paletteKey)+1) % keys.length];
+    state.paletteKey = next;
+    note(`Trying a new color direction: ${PALETTES[next].name}.`);
+  } else if(kind === 'concept'){
+    const types = ['symbol','type','abstract'];
+    const cur = state.concepts[state.activeConceptIdx].type;
+    const next = types[(types.indexOf(cur)+1)%types.length];
+    state.concepts[state.activeConceptIdx].type = next;
+    state.regenNonce = (state.regenNonce||0)+1;
+    note("Here's a new creative direction within the same brand.");
+  } else if(kind === 'free' && freeText){
+    const t = freeText.toLowerCase();
+    let changed = [];
+    if(t.includes('dark')){ state.paletteKey='luxury'; changed.push('shifted toward a darker palette'); }
+    else if(t.includes('light') || t.includes('bright')){ state.paletteKey='vibrant'; changed.push('shifted toward a brighter palette'); }
+    else if(t.includes('blue')){ state.paletteKey='cool'; changed.push('shifted the palette toward blue'); }
+    else if(t.includes('earth')||t.includes('brown')){ state.paletteKey='earth'; changed.push('shifted toward earth tones'); }
+    if(t.includes('smaller')||t.includes('less')||t.includes('minimal')||t.includes('simple')){ state.concepts[state.activeConceptIdx].style='minimal'; changed.push('simplified the composition'); }
+    if(t.includes('bold')||t.includes('bigger')||t.includes('strong')){ state.concepts[state.activeConceptIdx].style='bold'; changed.push('made it bolder'); }
+    if(t.includes('elegant')||t.includes('luxury')||t.includes('premium')){ state.concepts[state.activeConceptIdx].style='elegant'; changed.push('leaned into an elegant style'); }
+    if(changed.length===0){
+      note("Noted — in the live version this text is sent to the AI designer for a real interpretation. For this demo, try mentioning a color or style word (like \"darker\", \"minimal\", \"bold\").");
+    } else {
+      note("Keeping the current concept and just adjusting what you asked: " + changed.join(', ') + ".");
+    }
+  }
+  renderResult();
+}
+
+document.querySelector('.refine .chip-row').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip')) return;
+  applyRefine(e.target.dataset.refine);
+});
+document.getElementById('refineSend').addEventListener('click', ()=>{
+  const val = document.getElementById('refineInput').value.trim();
+  if(!val) return;
+  applyRefine('free', val);
+  document.getElementById('refineInput').value = '';
+});
+document.getElementById('refineInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('refineSend').click();
+});
+
+/* ---------------- PRICING / MODAL (simulated) ---------------- */
+const modal = document.getElementById('modalBackdrop');
+document.getElementById('hdBtn').addEventListener('click', ()=>{
+  document.getElementById('modalTitle').textContent = 'HD Export — $3';
+  document.getElementById('modalBody').textContent = 'One-time purchase. You get this exact design at high resolution. The watermark stays — that\'s intentional, this tier is for previewing quality, not final use. In the live version this opens real Stripe Checkout.';
+  modal.classList.add('open');
+  modal.dataset.mode = 'hd';
+});
+document.getElementById('premiumBtn').addEventListener('click', ()=>{
+  document.getElementById('modalTitle').textContent = 'Premium — $5';
+  document.getElementById('modalBody').textContent = 'Unlocks full resolution with no watermark, all 3 concepts, and unlimited refinements. In the live version this opens real Stripe Checkout.';
+  modal.classList.add('open');
+  modal.dataset.mode = 'premium';
+});
+document.getElementById('closeModal').addEventListener('click', ()=> modal.classList.remove('open'));
+document.getElementById('simulatePay').addEventListener('click', ()=>{
+  /*
+    STRIPE_INTEGRATION_TODO:
+    Replace this click handler with a redirect to a Stripe Checkout
+    Session URL created by a backend endpoint, e.g.:
+      const res = await fetch('/create-checkout-session', {method:'POST', body: JSON.stringify({tier: modal.dataset.mode})});
+      const {url} = await res.json();
+      window.location = url;
+    On return from a successful Stripe session, verify server-side and
+    THEN set state.unlocked = true — never trust a client-side flag alone.
+  */
+  if(modal.dataset.mode === 'premium'){ state.unlocked = true; }
+  if(modal.dataset.mode === 'hd'){ /* watermark intentionally stays for $3 tier */ }
+  modal.classList.remove('open');
+  renderResult();
+});
+</script>
+</body>
+</html>
