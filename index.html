@@ -30,6 +30,9 @@ header{padding:26px 0 6px;}
 .brandmark{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-weight:600;font-size:20px;}
 .brandmark span{width:26px;height:26px;border-radius:7px;background:var(--accent);display:inline-block;}
 .theme-toggle{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.app-tabs{display:flex;gap:8px;margin-top:16px;border-bottom:1.5px solid var(--line);padding-bottom:0;}
+.app-tab{background:none;border:none;padding:10px 4px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1.5px;}
+.app-tab.active{color:var(--ink);border-bottom-color:var(--accent);}
 
 /* screens */
 .screen{display:none;}
@@ -40,6 +43,11 @@ header{padding:26px 0 6px;}
 .discover-head{text-align:center;margin-bottom:36px;}
 .discover-head h1{font-size:38px;line-height:1.1;}
 .discover-head p{color:var(--muted);margin-top:10px;font-size:16px;}
+.showcase{margin-bottom:30px;}
+.showcase-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;}
+.showcase-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;}
+.showcase-item{flex:0 0 88px;border-radius:12px;overflow:hidden;border:1.5px solid var(--line);}
+.showcase-item canvas{width:100%;height:100%;display:block;}
 .q-card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:14px;}
 .q-card label{display:block;font-weight:600;font-size:14px;margin-bottom:10px;}
 .q-card .opt{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px;}
@@ -58,6 +66,8 @@ html[data-theme="dark"] .chip.selected{background:var(--accent);border-color:var
 .style-opt:hover{transform:translateY(-2px);border-color:var(--accent);}
 .style-opt.selected{border-color:var(--accent);background:var(--accent-soft);}
 .style-desc{font-size:12.5px;color:var(--muted);margin-top:10px;min-height:16px;}
+#bizname.field-error{border-color:var(--accent);}
+.field-error-text{color:var(--accent);font-size:12.5px;margin:8px 0 0;display:none;}
 .style-opt .glyph{font-family:'Fraunces',serif;font-size:22px;margin-bottom:6px;}
 .style-opt .label{font-size:12.5px;font-weight:600;}
 .palette-row{display:flex;gap:10px;flex-wrap:wrap;}
@@ -137,6 +147,12 @@ html[data-theme="dark"] .refine-input-row button{background:var(--accent);color:
 .designer-note{background:var(--bg);border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--muted);margin-top:12px;display:none;}
 .designer-note.show{display:block;}
 .start-over{margin-top:14px;background:none;border:none;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;padding:0;}
+.extend-brand{margin-top:26px;padding-top:20px;border-top:1.5px solid var(--line);}
+.extend-brand label{display:block;font-weight:700;font-size:14px;margin-bottom:2px;}
+.extend-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px;}
+.extend-item{border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg);position:relative;aspect-ratio:1/1;}
+.extend-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.extend-item .ex-label{position:absolute;bottom:0;left:0;right:0;font-size:10.5px;font-weight:600;background:rgba(0,0,0,0.55);color:#fff;padding:4px 6px;text-align:center;}
 
 /* pricing */
 .pricing-col{display:flex;flex-direction:column;gap:14px;}
@@ -161,6 +177,8 @@ html[data-theme="dark"] .refine-input-row button{background:var(--accent);color:
 .modal .close{background:var(--bg);color:var(--ink);}
 
 footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center;}
+.site-footer{display:flex;flex-direction:column;gap:6px;}
+.footer-meta a{color:var(--muted);}
 
 @media (max-width:860px){
   .style-grid{grid-template-columns:repeat(2,1fr);}
@@ -176,6 +194,10 @@ footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center
     <div class="brandmark"><span></span>Markmade</div>
     <button class="theme-toggle" id="themeToggle">🌙 Dark</button>
   </div>
+  <div class="app-tabs" id="appTabs">
+    <button class="app-tab active" data-app="logo">Logo Maker</button>
+    <button class="app-tab" data-app="imagegen">Image Generator</button>
+  </div>
 </header>
 
 <!-- SCREEN 1: DISCOVERY -->
@@ -186,9 +208,15 @@ footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center
       <p>A few quick questions — no design experience needed.</p>
     </div>
 
+    <div class="showcase">
+      <p class="showcase-label">A few examples of what comes out</p>
+      <div class="showcase-row" id="showcaseRow"></div>
+    </div>
+
     <div class="q-card">
       <label>Brand or project name</label>
       <input type="text" id="bizname" placeholder="e.g. Riverside Coffee Co." maxlength="30">
+      <p class="field-error-text" id="bizNameError" style="display:none;">Type a name so I know what to design for.</p>
     </div>
 
     <div class="q-card">
@@ -238,7 +266,38 @@ footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center
   </div>
 </section>
 
-<!-- SCREEN 2: GENERATING -->
+<!-- SCREEN: FREE-FORM IMAGE GENERATOR -->
+<section class="screen" id="screen-imagegen">
+  <div class="discover-wrap">
+    <div class="discover-head">
+      <h1>Generate any image.</h1>
+      <p>Describe what you want to see — same free AI engine, no logo constraints.</p>
+    </div>
+
+    <div class="q-card">
+      <label>Describe the image</label>
+      <textarea id="imgPrompt" placeholder="e.g. a cozy cabin in a snowy forest at sunset, warm lighting, painterly style" style="min-height:90px;"></textarea>
+    </div>
+
+    <div class="q-card">
+      <label>Shape</label>
+      <div class="chip-row" id="imgShapeRow">
+        <button class="chip selected" data-shape="1:1">Square</button>
+        <button class="chip" data-shape="16:9">Landscape</button>
+        <button class="chip" data-shape="9:16">Portrait</button>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="imgGenerateBtn">Generate image →</button>
+    <p class="required-note">Free · results may vary in quality</p>
+
+    <div class="q-card" id="imgResultCard" style="display:none;margin-top:22px;">
+      <div class="concept-canvas-shell" id="imgResultShell" style="aspect-ratio:auto;"></div>
+      <button class="pick" id="imgDownloadBtn" style="margin-top:12px;">Download image</button>
+    </div>
+  </div>
+</section>
+
 <section class="screen" id="screen-generating">
   <div class="generating-wrap">
     <div class="spin"></div>
@@ -287,6 +346,17 @@ footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center
         <div class="designer-note" id="designerNote"></div>
       </div>
       <button class="start-over" id="startOverBtn">↺ Start over</button>
+
+      <div class="extend-brand">
+        <label>Extend this brand</label>
+        <p class="opt" style="margin:0 0 10px;">Same name, colors, and style — applied to other assets.</p>
+        <div class="chip-row">
+          <button class="chip" data-extend="social">Instagram post</button>
+          <button class="chip" data-extend="banner">Banner / cover image</button>
+          <button class="chip" data-extend="card">Business card mockup</button>
+        </div>
+        <div id="extendGallery" class="extend-gallery"></div>
+      </div>
     </div>
 
     <div class="pricing-col">
@@ -323,7 +393,14 @@ footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center
   </div>
 </section>
 
-<footer class="wrap">Markmade — a demo product. Generation and payment shown here are simulated for preview purposes.</footer>
+<footer class="wrap site-footer">
+  <div class="footer-about">
+    <strong>Markmade</strong> — an AI logo design tool. Generation and payment shown here are simulated for preview purposes.
+  </div>
+  <div class="footer-meta">
+    Made by Krish · <a href="mailto:hello@markmade.com">hello@markmade.com</a>
+  </div>
+</footer>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
@@ -434,20 +511,59 @@ const CONCEPT_WORDS = {
 function buildPrompt(conceptType){
   const palette = PALETTES[state.paletteKey];
   const feelWords = state.feels.length ? state.feels.join(', ') + ' feeling, ' : '';
-  const desc = state.desc ? `brand about ${state.desc}, ` : '';
+  const desc = state.desc ? `for a brand about ${state.desc}, ` : '';
   const free = state.freedesc ? state.freedesc + ', ' : '';
-  return `sharp crisp professional flat vector logo design for "${state.name}", ${CONCEPT_WORDS[conceptType]}, `
-    + `${STYLE_WORDS[state.style]}, ${feelWords}${desc}${free}`
-    + `color palette exactly ${palette.colors.join(' and ')}, centered composition, isolated on plain white background, `
-    + `clean edges, high contrast, studio lighting, no watermark, no signature, no blur, no noise, no text artifacts, `
-    + `award-winning logo design, 8k`;
+  return `flat 2D vector graphic design logo icon, NOT a photograph, NOT 3D render, NOT realistic, `
+    + `${CONCEPT_WORDS[conceptType]} for "${state.name}", ${desc}${free}`
+    + `${STYLE_WORDS[state.style]}, ${feelWords}`
+    + `solid flat colors only, ${palette.colors.join(' and ')}, simple clean shapes, minimalist graphic design, `
+    + `white background, vector illustration style, app icon style, no gradients, no texture, no shadows, no photorealism`;
 }
 
 function pollinationsUrl(conceptType, sizePx, variation){
   const v = variation || 0;
   const seed = (hashStr(state.name + '|' + state.style + '|' + state.paletteKey + '|' + conceptType + '|' + v)) % 100000;
   const prompt = buildPrompt(conceptType);
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${sizePx}&height=${sizePx}&seed=${seed}&nologo=true&model=flux&enhance=true`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${sizePx}&height=${sizePx}&seed=${seed}&nologo=true&model=flux`;
+}
+
+/* ---------------- GENERIC IMAGE HELPERS (used by Image Generator + Extend Brand) ---------------- */
+function genericPollinationsUrl(promptText, w, h, seed){
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux`;
+}
+function loadImageOnce(url){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=> resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+async function loadImageWithRetry(url, retries){
+  if(retries === undefined) retries = 3;
+  try{
+    return await loadImageOnce(url);
+  } catch(e){
+    if(retries > 0){
+      await new Promise(r=> setTimeout(r, 4500));
+      return loadImageWithRetry(url, retries - 1);
+    }
+    throw e;
+  }
+}
+async function downloadImage(imgEl, filename){
+  try{
+    const res = await fetch(imgEl.src, {mode:'cors'});
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 3000);
+  } catch(e){
+    window.open(imgEl.src, '_blank');
+  }
 }
 
 function renderGenImage(container, conceptType, unlocked, sizePx, retriesLeft, isUpdate){
@@ -706,7 +822,15 @@ function showScreen(id){
 }
 
 document.getElementById('generateBtn').addEventListener('click', ()=>{
-  state.name = document.getElementById('bizname').value.trim() || 'Your Brand';
+  const nameInput = document.getElementById('bizname');
+  const nameVal = nameInput.value.trim();
+  if(!nameVal){
+    nameInput.classList.add('field-error');
+    document.getElementById('bizNameError').style.display = 'block';
+    nameInput.focus();
+    return;
+  }
+  state.name = nameVal;
   state.desc = document.getElementById('bizdesc').value.trim();
   state.freedesc = document.getElementById('freedesc').value.trim();
 
@@ -762,6 +886,7 @@ function buildConcepts(){
 function openResult(){
   state.presentation = 'light';
   state.unlocked = false;
+  document.getElementById('extendGallery').innerHTML = '';
   renderResult();
   buildConceptTabs();
   showScreen('screen-result');
@@ -790,8 +915,12 @@ function buildConceptTabs(){
 
 document.getElementById('presentToggle').addEventListener('click', e=>{
   if(e.target.tagName !== 'BUTTON') return;
+  // Presentation is just the backdrop around the logo, not the logo itself —
+  // so this should never trigger a brand new AI generation.
   state.presentation = e.target.dataset.p;
-  renderResult();
+  const shell = document.getElementById('resultShell');
+  shell.classList.toggle('dark-preview', state.presentation==='dark');
+  document.querySelectorAll('.mini-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.p===state.presentation));
 });
 
 document.getElementById('startOverBtn').addEventListener('click', ()=>{
@@ -899,6 +1028,127 @@ document.getElementById('simulatePay').addEventListener('click', ()=>{
   modal.classList.remove('open');
   renderResult();
 });
+
+/* ---------------- APP TABS (Logo Maker vs Image Generator) ---------------- */
+document.getElementById('appTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.app-tab');
+  if(!btn) return;
+  document.querySelectorAll('.app-tab').forEach(b=> b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s=> s.classList.remove('active'));
+  if(btn.dataset.app === 'imagegen'){
+    document.getElementById('screen-imagegen').classList.add('active');
+  } else {
+    document.getElementById('screen-discover').classList.add('active');
+  }
+});
+
+/* ---------------- FREE-FORM IMAGE GENERATOR ---------------- */
+let imgShape = '1:1';
+document.getElementById('imgShapeRow').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip')) return;
+  document.querySelectorAll('#imgShapeRow .chip').forEach(c=> c.classList.remove('selected'));
+  e.target.classList.add('selected');
+  imgShape = e.target.dataset.shape;
+});
+
+document.getElementById('imgGenerateBtn').addEventListener('click', async ()=>{
+  const promptText = document.getElementById('imgPrompt').value.trim();
+  if(!promptText) return;
+  const dims = {'1:1':[640,640], '16:9':[768,432], '9:16':[432,768]}[imgShape];
+  const card = document.getElementById('imgResultCard');
+  const shell = document.getElementById('imgResultShell');
+  const dlBtn = document.getElementById('imgDownloadBtn');
+  card.style.display = 'block';
+  dlBtn.style.display = 'none';
+  shell.style.position = 'relative';
+  shell.innerHTML = '<div class="loading-shimmer" style="position:static;aspect-ratio:1/1;">Generating…</div>';
+  const seed = hashStr(promptText + imgShape + Date.now()) % 100000;
+  const url = genericPollinationsUrl(promptText, dims[0], dims[1], seed);
+  try{
+    const img = await loadImageWithRetry(url, 3);
+    img.style.width = '100%';
+    img.style.display = 'block';
+    shell.innerHTML = '';
+    shell.appendChild(img);
+    dlBtn.style.display = 'block';
+    dlBtn.onclick = ()=> downloadImage(img, 'markmade-image.png');
+  } catch(err){
+    shell.innerHTML = '<div class="loading-shimmer" style="position:static;aspect-ratio:1/1;flex-direction:column;gap:8px;">'
+      + '<span>Free generator is busy right now.</span><button class="retry-btn" id="imgRetryBtn">Retry</button></div>';
+    document.getElementById('imgRetryBtn').addEventListener('click', ()=> document.getElementById('imgGenerateBtn').click());
+  }
+});
+
+/* ---------------- EXTEND YOUR BRAND ---------------- */
+const EXTEND_PROMPTS = {
+  social: (n,s,p)=> `instagram social media post design featuring the brand name "${n}", ${STYLE_WORDS[s]}, flat 2D graphic design, NOT a photograph, NOT realistic, solid flat colors ${p.colors.join(' and ')}, square layout, clean modern composition, vector illustration style`,
+  banner: (n,s,p)=> `wide banner cover image design for the brand "${n}", ${STYLE_WORDS[s]}, flat 2D graphic design, NOT a photograph, NOT realistic, solid flat colors ${p.colors.join(' and ')}, horizontal banner layout, clean modern composition, vector illustration style`,
+  card:   (n,s,p)=> `business card mockup design for the brand "${n}", ${STYLE_WORDS[s]}, flat 2D graphic design, NOT a photograph, NOT realistic, solid flat colors ${p.colors.join(' and ')}, elegant card layout, clean modern composition, vector illustration style`
+};
+const EXTEND_LABELS = {social:'Instagram post', banner:'Banner', card:'Business card'};
+const EXTEND_DIMS = {social:[500,500], banner:[700,394], card:[600,380]};
+
+document.querySelector('.extend-brand .chip-row').addEventListener('click', async e=>{
+  const chip = e.target.closest('.chip');
+  if(!chip || chip.disabled) return;
+  const kind = chip.dataset.extend;
+  chip.disabled = true;
+  const gallery = document.getElementById('extendGallery');
+  const item = document.createElement('div');
+  item.className = 'extend-item';
+  item.innerHTML = '<div class="loading-shimmer" style="position:absolute;inset:0;">Generating…</div>';
+  gallery.prepend(item);
+  const palette = PALETTES[state.paletteKey];
+  const promptText = EXTEND_PROMPTS[kind](state.name, state.style, palette);
+  const [w,h] = EXTEND_DIMS[kind];
+  const seed = hashStr(promptText + Date.now()) % 100000;
+  const url = genericPollinationsUrl(promptText, w, h, seed);
+  try{
+    const img = await loadImageWithRetry(url, 3);
+    item.innerHTML = '';
+    item.appendChild(img);
+    const lbl = document.createElement('div');
+    lbl.className = 'ex-label';
+    lbl.textContent = EXTEND_LABELS[kind] + ' · tap to download';
+    item.appendChild(lbl);
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', ()=> downloadImage(img, `markmade-${kind}.png`));
+  } catch(err){
+    item.innerHTML = '<div class="loading-shimmer" style="position:absolute;inset:0;">Busy — tap to retry</div>';
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', ()=>{ item.remove(); chip.click(); });
+  }
+  chip.disabled = false;
+});
+
+/* ---------------- EXAMPLE SHOWCASE (static, always-reliable placeholders) ---------------- */
+function populateShowcase(){
+  const samples = [
+    {name:'Riverside Coffee Co.', style:'elegant', paletteKey:'earth', type:'symbol'},
+    {name:'Vertex Robotics', style:'geometric', paletteKey:'cool', type:'abstract'},
+    {name:'Luxe & Co', style:'elegant', paletteKey:'luxury', type:'type'},
+    {name:'Bloom Studio', style:'playful', paletteKey:'vibrant', type:'symbol'}
+  ];
+  const row = document.getElementById('showcaseRow');
+  samples.forEach(s=>{
+    const item = document.createElement('div');
+    item.className = 'showcase-item';
+    const canvas = document.createElement('canvas');
+    item.appendChild(canvas);
+    row.appendChild(item);
+    drawConcept(canvas, {name:s.name, style:s.style, palette:PALETTES[s.paletteKey], conceptType:s.type, unlocked:true, presentation:'light'});
+  });
+}
+populateShowcase();
+
+/* ---------------- EMPTY-NAME VALIDATION ---------------- */
+document.getElementById('bizname').addEventListener('input', ()=>{
+  document.getElementById('bizname').classList.remove('field-error');
+  document.getElementById('bizNameError').style.display = 'none';
+});
+
+
 </script>
 </body>
 </html>
