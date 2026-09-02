@@ -54,8 +54,10 @@ input[type=text]:focus,textarea:focus{outline:2px solid var(--accent);outline-of
 .chip.selected{border-color:var(--ink);background:var(--ink);color:var(--surface);}
 html[data-theme="dark"] .chip.selected{background:var(--accent);border-color:var(--accent);color:#111;}
 .style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.style-opt{border:1.5px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;background:var(--bg);}
+.style-opt{border:1.5px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,transform .15s;}
+.style-opt:hover{transform:translateY(-2px);border-color:var(--accent);}
 .style-opt.selected{border-color:var(--accent);background:var(--accent-soft);}
+.style-desc{font-size:12.5px;color:var(--muted);margin-top:10px;min-height:16px;}
 .style-opt .glyph{font-family:'Fraunces',serif;font-size:22px;margin-bottom:6px;}
 .style-opt .label{font-size:12.5px;font-weight:600;}
 .palette-row{display:flex;gap:10px;flex-wrap:wrap;}
@@ -97,6 +99,10 @@ html[data-theme="dark"] .generate-btn{background:var(--accent);color:#111;}
 .watermark-overlay span{transform:rotate(-28deg);font-weight:700;font-size:15px;color:rgba(20,33,61,0.35);letter-spacing:.06em;white-space:nowrap;}
 .loading-shimmer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px;background:var(--bg);text-align:center;padding:14px;}
 .retry-btn{background:var(--ink);color:var(--surface);border:none;padding:8px 16px;border-radius:8px;font-weight:600;font-size:12.5px;cursor:pointer;}
+.updating-overlay{position:absolute;inset:0;background:rgba(10,14,22,0.45);backdrop-filter:blur(1px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;}
+.mini-spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;animation:spin .8s linear infinite;}
+.updating-text{font-size:13px;font-weight:600;}
+.chip:disabled, #refineSend:disabled{opacity:0.5;cursor:not-allowed;}
 .result-canvas-shell{position:relative;}
 .result-canvas-shell canvas{width:100%;height:auto;display:block;}
 .fallback-note{position:absolute;bottom:6px;left:6px;right:6px;font-size:10.5px;background:rgba(0,0,0,0.6);color:#fff;padding:6px 8px;border-radius:6px;text-align:center;cursor:pointer;}
@@ -214,6 +220,7 @@ footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center
         <div class="style-opt" data-style="geometric"><div class="glyph">△</div><div class="label">Geometric</div></div>
         <div class="style-opt" data-style="badge"><div class="glyph">۞</div><div class="label">Badge</div></div>
       </div>
+      <p class="style-desc" id="styleDesc">Clean, simple, focused, and timeless.</p>
     </div>
 
     <div class="q-card">
@@ -331,7 +338,17 @@ footer{padding:30px 0 60px;font-size:12.5px;color:var(--muted);text-align:center
 /* ---------------- STATE ---------------- */
 const state = {
   name:'', desc:'', feels:[], style:'minimal', paletteKey:'navy', freedesc:'',
-  concepts:[], activeConceptIdx:0, presentation:'light', unlocked:false
+  concepts:[], activeConceptIdx:0, presentation:'light', unlocked:false,
+  variationSeed:0, isGenerating:false
+};
+
+const STYLE_DESCRIPTIONS = {
+  minimal:'Clean, simple, focused, and timeless.',
+  bold:'Strong shapes, confident type, high impact.',
+  elegant:'Graceful typography with restrained detail.',
+  playful:'Fun, energetic, friendly, expressive language.',
+  geometric:'Structured shapes, precision, balance, symmetry.',
+  badge:'Classic emblem with nostalgic crest detail.'
 };
 
 const PALETTES = {
@@ -381,6 +398,15 @@ document.getElementById('styleGrid').addEventListener('click', e=>{
   document.querySelectorAll('.style-opt').forEach(o=>o.classList.remove('selected'));
   opt.classList.add('selected');
   state.style = opt.dataset.style;
+  document.getElementById('styleDesc').textContent = STYLE_DESCRIPTIONS[state.style];
+});
+document.getElementById('styleGrid').addEventListener('mouseover', e=>{
+  const opt = e.target.closest('.style-opt');
+  if(!opt) return;
+  document.getElementById('styleDesc').textContent = STYLE_DESCRIPTIONS[opt.dataset.style];
+});
+document.getElementById('styleGrid').addEventListener('mouseleave', ()=>{
+  document.getElementById('styleDesc').textContent = STYLE_DESCRIPTIONS[state.style];
 });
 
 /* ---------------- DETERMINISTIC HASH (for abstract shapes) ---------------- */
@@ -410,27 +436,38 @@ function buildPrompt(conceptType){
   const feelWords = state.feels.length ? state.feels.join(', ') + ' feeling, ' : '';
   const desc = state.desc ? `brand about ${state.desc}, ` : '';
   const free = state.freedesc ? state.freedesc + ', ' : '';
-  return `professional flat vector logo design for "${state.name}", ${CONCEPT_WORDS[conceptType]}, `
+  return `sharp crisp professional flat vector logo design for "${state.name}", ${CONCEPT_WORDS[conceptType]}, `
     + `${STYLE_WORDS[state.style]}, ${feelWords}${desc}${free}`
-    + `color palette ${palette.colors.join(' and ')}, isolated on plain white background, `
-    + `no watermark, no signature, high quality professional logo design`;
+    + `color palette exactly ${palette.colors.join(' and ')}, centered composition, isolated on plain white background, `
+    + `clean edges, high contrast, studio lighting, no watermark, no signature, no blur, no noise, no text artifacts, `
+    + `award-winning logo design, 8k`;
 }
 
-function pollinationsUrl(conceptType, sizePx){
-  const seed = hashStr(state.name + '|' + state.style + '|' + state.paletteKey + '|' + conceptType) % 100000;
+function pollinationsUrl(conceptType, sizePx, variation){
+  const v = variation || 0;
+  const seed = (hashStr(state.name + '|' + state.style + '|' + state.paletteKey + '|' + conceptType + '|' + v)) % 100000;
   const prompt = buildPrompt(conceptType);
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${sizePx}&height=${sizePx}&seed=${seed}&nologo=true&model=flux`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${sizePx}&height=${sizePx}&seed=${seed}&nologo=true&model=flux&enhance=true`;
 }
 
-function renderGenImage(container, conceptType, unlocked, sizePx, retriesLeft){
+function renderGenImage(container, conceptType, unlocked, sizePx, retriesLeft, isUpdate){
   if(retriesLeft === undefined) retriesLeft = 3;
-  const friendlyMessages = ['Generating…','Sketching your concept…','Almost there…','Adding final touches…'];
-  container.innerHTML = `<div class="loading-shimmer">${friendlyMessages[3-retriesLeft] || 'Generating…'}</div>`;
+  const hasExisting = !!container.querySelector('.gen-img, canvas');
+  const updating = isUpdate && hasExisting;
+
+  if(updating){
+    showUpdatingOverlay(container);
+  } else {
+    const friendlyMessages = ['Generating…','Sketching your concept…','Almost there…','Adding final touches…'];
+    container.innerHTML = `<div class="loading-shimmer">${friendlyMessages[3-retriesLeft] || 'Generating…'}</div>`;
+  }
+
   const img = new Image();
   img.className = 'gen-img';
   img.alt = state.name + ' logo concept';
   img.onload = ()=>{
-    container.innerHTML = '';
+    if(updating) hideUpdatingOverlay(container);
+    container.querySelectorAll('.gen-img, canvas, .fallback-note, .watermark-overlay, .loading-shimmer').forEach(el=>el.remove());
     container.appendChild(img);
     if(!unlocked){
       const wm = document.createElement('div');
@@ -438,29 +475,66 @@ function renderGenImage(container, conceptType, unlocked, sizePx, retriesLeft){
       wm.innerHTML = '<span>PREVIEW &nbsp;·&nbsp; PREVIEW &nbsp;·&nbsp; PREVIEW</span>';
       container.appendChild(wm);
     }
+    state.isGenerating = false;
+    setRefineDisabled(false);
   };
   img.onerror = ()=>{
     if(retriesLeft > 0){
-      const friendlyMessages = ['Sketching your concept…','Almost there…','Adding final touches…'];
-      container.innerHTML = `<div class="loading-shimmer">${friendlyMessages[3-retriesLeft]}</div>`;
-      setTimeout(()=> renderGenImage(container, conceptType, unlocked, sizePx, retriesLeft-1), 4500);
+      if(!updating){
+        const friendlyMessages = ['Sketching your concept…','Almost there…','Adding final touches…'];
+        container.innerHTML = `<div class="loading-shimmer">${friendlyMessages[3-retriesLeft]}</div>`;
+      }
+      setTimeout(()=> renderGenImage(container, conceptType, unlocked, sizePx, retriesLeft-1, isUpdate), 4500);
     } else {
-      // Live generator unreachable — fall back to a drawn placeholder so the
-      // experience never dead-ends, instead of leaving an error box.
-      container.innerHTML = '';
-      container.style.position = 'relative';
-      const canvas = document.createElement('canvas');
-      container.appendChild(canvas);
-      const palette = PALETTES[state.paletteKey];
-      drawConcept(canvas, {name:state.name, style:state.style, palette, conceptType, unlocked, presentation:'light'});
-      const note = document.createElement('div');
-      note.className = 'fallback-note';
-      note.textContent = 'Still perfecting this one — tap to try again.';
-      note.addEventListener('click', ()=> renderGenImage(container, conceptType, unlocked, sizePx, 3));
-      container.appendChild(note);
+      state.isGenerating = false;
+      setRefineDisabled(false);
+      if(updating){
+        // Never destroy a working previous image just because an edit failed.
+        hideUpdatingOverlay(container);
+        note("Couldn't reach the live generator for that change — still showing your last version. Try again in a moment.");
+      } else {
+        container.innerHTML = '';
+        container.style.position = 'relative';
+        const canvas = document.createElement('canvas');
+        container.appendChild(canvas);
+        const palette = PALETTES[state.paletteKey];
+        drawConcept(canvas, {name:state.name, style:state.style, palette, conceptType, unlocked, presentation:'light'});
+        const noteEl = document.createElement('div');
+        noteEl.className = 'fallback-note';
+        noteEl.textContent = 'Still perfecting this one — tap to try again.';
+        noteEl.addEventListener('click', ()=> renderGenImage(container, conceptType, unlocked, sizePx, 3));
+        container.appendChild(noteEl);
+      }
     }
   };
-  img.src = pollinationsUrl(conceptType, sizePx);
+  img.src = pollinationsUrl(conceptType, sizePx, state.variationSeed);
+}
+
+function showUpdatingOverlay(container){
+  container.style.position = 'relative';
+  let overlay = container.querySelector('.updating-overlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.className = 'updating-overlay';
+    overlay.innerHTML = '<div class="mini-spin"></div><span class="updating-text">Updating your logo…</span>';
+    container.appendChild(overlay);
+  }
+  const messages = ['Updating your logo…','Applying your changes…','Refining the design…'];
+  let mi = 0;
+  if(overlay.dataset.iv) clearInterval(Number(overlay.dataset.iv));
+  const iv = setInterval(()=>{
+    mi = (mi+1) % messages.length;
+    const t = overlay.querySelector('.updating-text');
+    if(t) t.textContent = messages[mi];
+  }, 1700);
+  overlay.dataset.iv = iv;
+}
+function hideUpdatingOverlay(container){
+  const overlay = container.querySelector('.updating-overlay');
+  if(overlay){ clearInterval(Number(overlay.dataset.iv)); overlay.remove(); }
+}
+function setRefineDisabled(disabled){
+  document.querySelectorAll('.refine .chip, #refineSend, #refineInput').forEach(el=> el.disabled = disabled);
 }
 
 /* ---------------- DRAWING ENGINE ---------------- */
@@ -693,11 +767,11 @@ function openResult(){
   showScreen('screen-result');
 }
 
-function renderResult(){
+function renderResult(isUpdate){
   const c = state.concepts[state.activeConceptIdx];
   document.getElementById('resultConceptTag').textContent = c.label;
   const shell = document.getElementById('resultShell');
-  renderGenImage(shell, c.type, state.unlocked, 700);
+  renderGenImage(shell, c.type, state.unlocked, 700, undefined, isUpdate);
   shell.classList.toggle('dark-preview', state.presentation==='dark');
   document.querySelectorAll('.mini-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.p===state.presentation));
 }
@@ -737,6 +811,10 @@ function note(msg){
 }
 
 function applyRefine(kind, freeText){
+  if(state.isGenerating) return;
+  state.isGenerating = true;
+  state.variationSeed = (state.variationSeed || 0) + 1;
+  setRefineDisabled(true);
   const palette = PALETTES[state.paletteKey];
   if(kind === 'minimal'){
     document.querySelectorAll('.style-opt').forEach(o=>{});
@@ -773,7 +851,7 @@ function applyRefine(kind, freeText){
       note("Keeping the current concept and just adjusting what you asked: " + changed.join(', ') + ".");
     }
   }
-  renderResult();
+  renderResult(true);
 }
 
 document.querySelector('.refine .chip-row').addEventListener('click', e=>{
