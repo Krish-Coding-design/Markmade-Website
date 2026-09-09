@@ -93,6 +93,45 @@
       </div>
     </section>
 
+    <!-- ============================================================
+         WAVE-WIPE TRANSITION  (hero  ->  services)
+         Scroll-linked "water wipe". While the user scrolls through
+         this tall zone, .wave-wipe__stage is pinned to the viewport
+         and the SVG water panel slides straight down until it floods
+         the screen; then the pin releases and the services section
+         rises into view underneath.
+
+         Decorative only (aria-hidden). script.js feeds scroll
+         progress into the --wave-progress custom property; all of the
+         motion itself is CSS/SVG. The zone collapses to zero height
+         without JS or under prefers-reduced-motion.
+         ============================================================ -->
+    <div class="wave-wipe" aria-hidden="true">
+      <div class="wave-wipe__stage">
+        <!-- The flooding water. Parked just above the fold at
+             progress 0, covers the whole screen by progress ~0.75. -->
+        <div class="wave-wipe__panel">
+          <!-- Solid body of the water. -->
+          <div class="wave-wipe__fill"></div>
+
+          <!-- Wavy leading edge, hung off the bottom of the fill so
+               the descending water has a moving crest rather than a
+               flat line. Two offset layers give it a little depth. -->
+          <svg class="wave-wipe__edge" viewBox="0 0 1440 170" preserveAspectRatio="none">
+            <path class="wave-wipe__crest wave-wipe__crest--back"
+                  d="M0,0 H1440 V95 C1150,165 960,35 720,80 C500,120 260,150 0,90 Z" />
+            <path class="wave-wipe__crest wave-wipe__crest--front"
+                  d="M0,0 H1440 V80 C1200,150 980,25 720,70 C480,110 250,135 0,78 Z" />
+          </svg>
+
+          <!-- A few rising bubbles for texture (echoes the hero). -->
+          <div class="wave-wipe__bubbles">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- SERVICES -->
     <section class="section" id="services" aria-labelledby="services-title">
       <div class="wrap">
